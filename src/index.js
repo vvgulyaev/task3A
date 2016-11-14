@@ -56,29 +56,44 @@ request({
     }
 })
 
+function getVolumes(pc){
+	let result = {};
+	pc.hdd.forEach((drive) => {
+		if (result.hasOwnProperty(drive.volume)){
+			result[drive.volume]	+= drive.size;
+		}
+		else{
+			result[drive.volume]	= drive.size;
+		}
+	}); 
+    for (let drive in result) {
+        result[drive] += 'B';
+    }
+	return result;
+}
+
 app.get(baseURL + '*', async (req, res) => {
 	var struct_path = req.path.replace(baseURL, "");
+	struct_path = struct_path.replace(/\./g, "");
+	struct_path = struct_path.replace(/\[./g, "");
+	struct_path = struct_path.replace(/\]./g, "");
 	struct_path = struct_path.replace(/\//g, ".");
+	console.log(struct_path);
 	var fields = struct_path.split(".");
 	var output_value = _.getPath(pc, struct_path);
-	//console.log(pc);
-	if ((!fields[0])&&(fields.length==1))
-	{
+	console.log(fields);
+	if ((!fields[0])&&(fields.length==1)){
 		return res.json(pc);
 	}
-	else if ((fields[0]=='volumes') && (fields.length==1))
-	{
-		console.log(fields);
-		return res.json(pc);
+	else if ((fields[0]=='volumes') && (fields.length==1))	{
+		res.status(200).json(getVolumes(pc));
 	}
-	else if (output_value===undefined)
-	{
-		return res.status(404).json("Not Found");
+	else if (output_value===undefined){
+		//return res.status(404).json('Not Found');
+		return res.status(404).send('Not Found');
 	}
-	else
-	{
+	else{
 		return res.json(output_value);
-
 	}
 });
 
