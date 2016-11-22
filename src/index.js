@@ -74,6 +74,7 @@ function getVolumes(pc){
 
 app.get(baseURL + '*', async (req, res) => {
 	var struct_path = req.path.replace(baseURL, "");
+	struct_path = struct_path.replace(/\/$/g, "");
 	struct_path = struct_path.replace(/\./g, "");
 	struct_path = struct_path.replace(/\[./g, "");
 	struct_path = struct_path.replace(/\]./g, "");
@@ -88,7 +89,8 @@ app.get(baseURL + '*', async (req, res) => {
 	else if ((fields[0]=='volumes') && (fields.length==1))	{
 		res.status(200).json(getVolumes(pc));
 	}
-	else if (output_value===undefined){
+	else if ( (output_value===undefined) || (struct_path.match( /\.length/i )))
+	{
 		//return res.status(404).json('Not Found');
 		return res.status(404).send('Not Found');
 	}
