@@ -101,8 +101,8 @@ app.get(baseURL + '*', async (req, res) => {
 
 var PunkPetsHairUrl = "https://gist.githubusercontent.com/isuvorov/55f38b82ce263836dadc0503845db4da/raw/pets.json";
 var base3BURL = '/task3B/';
+let info = {};
 let PunkPetsHair = {};
-
 var request_PunkPetsHair = require("request")
 
 request_PunkPetsHair({
@@ -112,7 +112,7 @@ request_PunkPetsHair({
 
     if (!error && response.statusCode === 200) {
         //console.log(body) // Print the json response
-        PunkPetsHair = body;
+        info = body;
     }
 })
 
@@ -287,6 +287,9 @@ app.get(base3BURL + '*', async (req, res) => {
 	var selectedPets;
 	var selectedUsers;
 
+	PunkPetsHair =  JSON.stringify(info);
+  	PunkPetsHair =  JSON.parse(PunkPetsHair);
+
 //	delete PunkPetsHair.users.pets;
 //	delete PunkPetsHair.pets.user;
 
@@ -305,13 +308,16 @@ app.get(base3BURL + '*', async (req, res) => {
 		selectedUsers = getUsersbyPet(req.query.havePet.toString());
 		return res.status(200).json(selectedUsers);
 	}
-/*
 	else if ( /^users\/populate$/i.test( struct_path ) && (isEmpty(req.query)))
 	{
 		var usersPopulate = GetUsersPopulate(PunkPetsHair.users);
 		return res.status(200).json(usersPopulate);
 	}
-*/
+	else if ( /^(users)\/populate$/i.test( struct_path ) && (req.query.havePet!==undefined))
+	{
+		selectedUsers = getUsersbyPet(req.query.havePet.toString());
+		return res.status(200).json(GetUsersPopulate(selectedUsers));
+	}
 	else if ( /^pets\/populate$/i.test( struct_path ) && (isEmpty(req.query)))
 	{
 		var petsPopulate = GetPetsPopulate(PunkPetsHair.pets);
@@ -364,7 +370,6 @@ app.get(base3BURL + '*', async (req, res) => {
 		else
 			return res.status(404).send('Not Found');
 	}
-	/*
 	else if ( /^users\/\d+\/populate$/i.test( struct_path ))
 	{
 		var search_grp_idx = struct_path.match(/^(users)\/(\d+)/i);
@@ -372,7 +377,7 @@ app.get(base3BURL + '*', async (req, res) => {
 		var element = getElementById(PunkPetsHair.users, idx);
 		if (element!==undefined)
 		{
-			element.pets = GetPetsByUserId(element.id);;
+			element.pets = GetPetsByUserId(element.id);
 			return res.status(200).json(element);
 		}
 		else
@@ -380,7 +385,6 @@ app.get(base3BURL + '*', async (req, res) => {
 			return res.status(404).send('Not Found');
 		}
 	}
-	*/
 	else if ( /^pets\/\d+\/populate$/i.test( struct_path ))
 	{
 		var search_grp_idx = struct_path.match(/^(pets)\/(\d+)/i);
@@ -403,6 +407,19 @@ app.get(base3BURL + '*', async (req, res) => {
 		var user = getUserByName(name);
 		if (user!==undefined)
 			return res.status(200).json(user);
+		else
+			return res.status(404).send('Not Found');
+	}
+	else if ( /^(users)\/\w+\/populate$/i.test( struct_path ))
+	{
+		var search_grp_idx = struct_path.match(/^(users)\/(\w+)/i);
+		var name = search_grp_idx[2];
+		var user = getUserByName(name);
+		if (user!==undefined)
+		{
+			user.pets = GetPetsByUserId(user.id);
+			return res.status(200).json(user);
+		}
 		else
 			return res.status(404).send('Not Found');
 	}
